@@ -1,4 +1,3 @@
-{{-- resources/views/peserta/pendaftaran/show.blade.php --}}
 @extends('layouts.peserta')
 
 @section('title', 'Detail Pendaftaran')
@@ -49,6 +48,11 @@
 
     {{-- Document Requirements Section --}}
     @if ($pendaftaran->status == 'menunggu')
+        @php
+            // Define uploaded documents array FIRST before using it
+            $uploadedDocs = $pendaftaran->dokumen->pluck('nama_dokumen')->toArray();
+        @endphp
+
         <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg">
             <div class="p-6">
                 <div class="flex items-start">
@@ -120,8 +124,6 @@
                                     'required' => false,
                                 ],
                             ];
-
-                            $uploadedDocs = $pendaftaran->dokumen->pluck('nama_dokumen')->toArray();
                         @endphp
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -203,6 +205,11 @@
             </div>
         </div>
     @endif
+
+    {{-- Define $uploadedDocs for other sections as well --}}
+    @php
+        $uploadedDocs = $pendaftaran->dokumen->pluck('nama_dokumen')->toArray();
+    @endphp
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Info Pendaftaran -->
