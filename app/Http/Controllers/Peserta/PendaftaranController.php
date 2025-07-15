@@ -15,7 +15,13 @@ class PendaftaranController extends Controller
         $user = auth()->user();
         $pendaftaran = $user->pendaftaran;
 
-        return view('peserta.pendaftaran.index', compact('pendaftaran'));
+        // Jika sudah ada pendaftaran, redirect ke show
+        if ($pendaftaran) {
+            return redirect()->route('peserta.pendaftaran.show');
+        }
+
+        // Jika belum ada pendaftaran, redirect ke create
+        return redirect()->route('peserta.pendaftaran.create');
     }
 
     public function create()
@@ -24,7 +30,7 @@ class PendaftaranController extends Controller
 
         // Cek apakah sudah pernah mendaftar
         if ($user->pendaftaran) {
-            return redirect()->route('peserta.pendaftaran.index')
+            return redirect()->route('peserta.pendaftaran.show')
                 ->with('info', 'Anda sudah terdaftar. Silakan melengkapi dokumen pendukung.');
         }
 
@@ -37,7 +43,7 @@ class PendaftaranController extends Controller
 
         // Cek apakah sudah pernah mendaftar
         if ($user->pendaftaran) {
-            return redirect()->route('peserta.pendaftaran.index')
+            return redirect()->route('peserta.pendaftaran.show')
                 ->with('error', 'Anda sudah terdaftar sebelumnya.');
         }
 
@@ -60,7 +66,7 @@ class PendaftaranController extends Controller
             'status' => 'menunggu'
         ]);
 
-        return redirect()->route('peserta.pendaftaran.index')
+        return redirect()->route('peserta.pendaftaran.show')
             ->with('success', 'Pendaftaran berhasil! Nomor pendaftaran Anda: ' . $nomorPendaftaran);
     }
 
@@ -74,6 +80,8 @@ class PendaftaranController extends Controller
                 ->with('info', 'Anda belum mendaftar program LPK.');
         }
 
+        $pendaftaran->load('dokumen');
+
         return view('peserta.pendaftaran.show', compact('pendaftaran'));
     }
 
@@ -81,7 +89,8 @@ class PendaftaranController extends Controller
     {
         $request->validate([
             'nama_dokumen' => 'required|string|max:255',
-            'file_dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048'
+            'file_dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'keterangan' => 'nullable|string|max:500'
         ]);
 
         $user = auth()->user();
@@ -95,7 +104,7 @@ class PendaftaranController extends Controller
         // Cek apakah dokumen dengan nama yang sama sudah ada
         $existingDoc = $pendaftaran->dokumen()->where('nama_dokumen', $request->nama_dokumen)->first();
         if ($existingDoc) {
-            return redirect()->route('peserta.pendaftaran.index')
+            return redirect()->route('peserta.pendaftaran.show')
                 ->with('error', 'Dokumen dengan nama tersebut sudah ada.');
         }
 
@@ -107,10 +116,11 @@ class PendaftaranController extends Controller
             'pendaftaran_id' => $pendaftaran->id,
             'nama_dokumen' => $request->nama_dokumen,
             'file_path' => $filePath,
-            'status' => 'menunggu'
+            'status' => 'menunggu',
+            'keterangan' => $request->keterangan
         ]);
 
-        return redirect()->route('peserta.pendaftaran.index')
+        return redirect()->route('peserta.pendaftaran.show')
             ->with('success', 'Dokumen berhasil diupload!');
     }
 
@@ -125,7 +135,7 @@ class PendaftaranController extends Controller
 
         // Hanya bisa hapus jika status pendaftaran masih menunggu
         if ($dokumen->pendaftaran->status !== 'menunggu') {
-            return redirect()->route('peserta.pendaftaran.index')
+            return redirect()->route('peserta.pendaftaran.show')
                 ->with('error', 'Tidak dapat menghapus dokumen karena pendaftaran sudah diproses.');
         }
 
@@ -136,7 +146,7 @@ class PendaftaranController extends Controller
 
         $dokumen->delete();
 
-        return redirect()->route('peserta.pendaftaran.index')
+        return redirect()->route('peserta.pendaftaran.show')
             ->with('success', 'Dokumen berhasil dihapus!');
     }
 }

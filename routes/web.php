@@ -97,9 +97,15 @@ Route::middleware(['auth', 'peserta'])->prefix('peserta')->name('peserta.')->gro
         Route::get('/', [PesertaPendaftaranController::class, 'index'])->name('index');
         Route::get('/create', [PesertaPendaftaranController::class, 'create'])->name('create');
         Route::post('/', [PesertaPendaftaranController::class, 'store'])->name('store');
-        Route::get('/show', [PesertaPendaftaranController::class, 'show'])->name('show'); // Route untuk show
-        Route::post('/upload-dokumen', [PesertaPendaftaranController::class, 'uploadDokumen'])->name('upload.dokumen');
-        Route::delete('/dokumen/{dokumen}', [PesertaPendaftaranController::class, 'deleteDokumen'])->name('delete.dokumen');
+        Route::get('/show', [PesertaPendaftaranController::class, 'show'])->name('show');
+    });
+
+    // Dokumen Routes (dipindah ke luar prefix pendaftaran)
+    Route::post('/dokumen/store', [PesertaPendaftaranController::class, 'uploadDokumen'])->name('dokumen.store');
+    Route::delete('/dokumen/{dokumen}', [PesertaPendaftaranController::class, 'deleteDokumen'])->name('dokumen.destroy');
+
+    Route::prefix('panduan')->name('panduan.')->group(function () {
+        Route::get('/dokumen', [App\Http\Controllers\Peserta\PanduanController::class, 'dokumen'])->name('dokumen');
     });
 
     // Profil
