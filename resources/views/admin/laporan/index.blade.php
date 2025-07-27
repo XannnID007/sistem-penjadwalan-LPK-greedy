@@ -8,6 +8,36 @@
         <p class="text-gray-600 mt-1">Dashboard laporan dan statistik sistem</p>
     </div>
 
+    @if (session('success'))
+        <div class="mb-6 bg-green-50 border border-green-300 rounded-md p-4">
+            <div class="flex">
+                <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd"></path>
+                </svg>
+                <div class="ml-3">
+                    <p class="text-sm text-green-700">{{ session('success') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if (session('info'))
+        <div class="mb-6 bg-blue-50 border border-blue-300 rounded-md p-4">
+            <div class="flex">
+                <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd"></path>
+                </svg>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">{{ session('info') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -87,61 +117,96 @@
         <!-- Quick Reports -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
             <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Laporan Cepat</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Laporan & Export</h3>
             </div>
             <div class="p-6">
                 <div class="space-y-4">
-                    <a href="{{ route('admin.laporan.pendaftaran') }}"
-                        class="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                </path>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">Laporan Pendaftaran</p>
-                                <p class="text-xs text-gray-600">Data lengkap pendaftaran peserta</p>
-                            </div>
-                        </div>
-                    </a>
-
-                    <a href="{{ route('admin.laporan.keberangkatan') }}"
-                        class="block p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors duration-200">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                </path>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">Laporan Keberangkatan</p>
-                                <p class="text-xs text-gray-600">Data jadwal dan peserta keberangkatan</p>
-                            </div>
-                        </div>
-                    </a>
-
-                    <div class="p-4 bg-yellow-50 rounded-lg">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-yellow-600 mr-3" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                </path>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">Export Data</p>
-                                <p class="text-xs text-gray-600 mb-2">Download laporan dalam format Excel atau PDF</p>
-                                <div class="space-x-2">
-                                    <a href="{{ route('admin.laporan.export.excel') }}"
-                                        class="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">Excel</a>
-                                    <a href="{{ route('admin.laporan.export.pdf') }}"
-                                        class="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">PDF</a>
+                    <!-- Laporan Pendaftaran -->
+                    <div class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Laporan Pendaftaran</p>
+                                    <p class="text-xs text-gray-600">Data lengkap pendaftaran peserta</p>
                                 </div>
                             </div>
+                            <div class="flex space-x-2">
+                                <a href="{{ route('admin.laporan.pendaftaran') }}"
+                                    class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                                    Lihat
+                                </a>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Laporan Keberangkatan -->
+                    <div class="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors duration-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Laporan Keberangkatan</p>
+                                    <p class="text-xs text-gray-600">Data jadwal dan peserta keberangkatan</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{{ route('admin.laporan.keberangkatan') }}"
+                                    class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                                    Lihat
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Export -->
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-sm font-medium text-gray-900 mb-3">Export dengan Filter</p>
+                        <form method="GET" action="{{ route('admin.laporan.export.excel') }}" class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1">Dari Tanggal</label>
+                                    <input type="date" name="dari"
+                                        class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1">Sampai Tanggal</label>
+                                    <input type="date" name="sampai"
+                                        class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">Status</label>
+                                <select name="status"
+                                    class="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500">
+                                    <option value="">Semua Status</option>
+                                    <option value="menunggu">Menunggu</option>
+                                    <option value="terverifikasi">Terverifikasi</option>
+                                    <option value="ditolak">Ditolak</option>
+                                    <option value="terjadwal">Terjadwal</option>
+                                </select>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button type="submit"
+                                    class="flex-1 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                                    Export Excel
+                                </button>
+                                <button type="submit" formaction="{{ route('admin.laporan.export.pdf') }}"
+                                    class="flex-1 px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700">
+                                    Export PDF
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -161,14 +226,24 @@
                     data: {!! json_encode(collect($pendaftaranPerBulan)->pluck('jumlah')) !!},
                     borderColor: 'rgb(34, 197, 94)',
                     backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                    tension: 0.4
+                    tension: 0.4,
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
                     }
                 }
             }

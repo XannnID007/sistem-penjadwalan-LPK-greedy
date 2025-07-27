@@ -1,5 +1,5 @@
 <?php
-// routes/web.php - Final Complete Version
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -28,7 +28,7 @@ Route::get('/', function () {
             return redirect()->route('peserta.dashboard');
         }
     }
-    return redirect()->route('login'); // Langsung ke login
+    return redirect()->route('login');
 });
 
 // Auth Routes
@@ -83,7 +83,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/', [LaporanController::class, 'index'])->name('index');
         Route::get('/pendaftaran', [LaporanController::class, 'pendaftaran'])->name('pendaftaran');
         Route::get('/keberangkatan', [LaporanController::class, 'keberangkatan'])->name('keberangkatan');
-        Route::get('/export/excel', [LaporanController::class, 'exportExcel'])->name('export.excel');
+
+        // Export Routes
+        Route::get('/export/excel', function (\Illuminate\Http\Request $request) {
+            $controller = new LaporanController();
+            if ($request->get('type') === 'jadwal') {
+                return $controller->exportJadwalExcel($request);
+            }
+            return $controller->exportExcel($request);
+        })->name('export.excel');
+
         Route::get('/export/pdf', [LaporanController::class, 'exportPdf'])->name('export.pdf');
     });
 });
@@ -100,7 +109,7 @@ Route::middleware(['auth', 'peserta'])->prefix('peserta')->name('peserta.')->gro
         Route::get('/show', [PesertaPendaftaranController::class, 'show'])->name('show');
     });
 
-    // Dokumen Routes (dipindah ke luar prefix pendaftaran)
+    // Dokumen Routes
     Route::post('/dokumen/store', [PesertaPendaftaranController::class, 'uploadDokumen'])->name('dokumen.store');
     Route::delete('/dokumen/{dokumen}', [PesertaPendaftaranController::class, 'deleteDokumen'])->name('dokumen.destroy');
 
@@ -129,43 +138,44 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 });
 
-// Download file dokumen (dengan authorization)
-Route::get('/storage/dokumen/{file}', function ($file) {
-    $user = auth()->user();
+// Secure file access routes
+Route::middleware('auth')->group(function () {
+    // Download dokumen
+    Route::get('/storage/dokumen/{file}', function ($file) {
+        $user = auth()->user();
 
-    if (!$user) {
-        abort(401);
-    }
+        if ($user->isAdmin()) {
+            $path = storage_path('app/public/dokumen/' . $file);
+            if (file_exists($path)) {
+                return response()->file($path);
+            }
+        } else {
+            $dokumen = App\Models\Dokumen::where('file_path', 'dokumen/' . $file)->first();
+            if ($dokumen && $dokumen->pendaftaran->user_id === $user->id) {
+                $path = storage_path('app/public/dokumen/' . $file);
+                if (file_exists($path)) {
+                    return response()->file($path);
+                }
+            }
+        }
 
-    // Admin bisa akses semua file
-    if ($user->isAdmin()) {
-        return response()->file(storage_path('app/public/dokumen/' . $file));
-    }
+        abort(404);
+    })->name('file.dokumen');
 
-    // Peserta hanya bisa akses file miliknya sendiri
-    $dokumen = App\Models\Dokumen::where('file_path', 'dokumen/' . $file)->first();
-    if ($dokumen && $dokumen->pendaftaran->user_id === $user->id) {
-        return response()->file(storage_path('app/public/dokumen/' . $file));
-    }
+    // Download foto profil
+    Route::get('/storage/profil/{file}', function ($file) {
+        $user = auth()->user();
 
-    abort(403);
-})->middleware('auth')->name('file.dokumen');
+        if ($user->isAdmin() || str_contains($file, 'profil_' . $user->id . '_')) {
+            $path = storage_path('app/public/profil/' . $file);
+            if (file_exists($path)) {
+                return response()->file($path);
+            }
+        }
 
-// Download file profil (dengan authorization)
-Route::get('/storage/profil/{file}', function ($file) {
-    $user = auth()->user();
-
-    if (!$user) {
-        abort(401);
-    }
-
-    // User hanya bisa akses foto profilnya sendiri, kecuali admin
-    if ($user->isAdmin() || str_contains($file, 'profil_' . $user->id . '_')) {
-        return response()->file(storage_path('app/public/profil/' . $file));
-    }
-
-    abort(403);
-})->middleware('auth')->name('file.profil');
+        abort(404);
+    })->name('file.profil');
+});
 
 // 404 Fallback
 Route::fallback(function () {
