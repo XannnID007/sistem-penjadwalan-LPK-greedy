@@ -26,48 +26,6 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                    </path>
-                </svg>
-            </div>
-            <h4 class="font-semibold text-gray-900 mb-2">Download Checklist</h4>
-            <p class="text-sm text-gray-600 mb-3">Unduh daftar periksa dokumen dalam format PDF</p>
-            <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">Download PDF</button>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            </div>
-            <h4 class="font-semibold text-gray-900 mb-2">Cek Status</h4>
-            <p class="text-sm text-gray-600 mb-3">Lihat dokumen yang sudah diupload</p>
-            <a href="{{ route('peserta.pendaftaran.show') }}"
-                class="text-green-600 hover:text-green-700 text-sm font-medium">Lihat Status</a>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                    </path>
-                </svg>
-            </div>
-            <h4 class="font-semibold text-gray-900 mb-2">Bantuan</h4>
-            <p class="text-sm text-gray-600 mb-3">Butuh bantuan? Hubungi tim support</p>
-            <button class="text-purple-600 hover:text-purple-700 text-sm font-medium">Contact Support</button>
-        </div>
-    </div>
-
     <!-- Document Categories -->
     <div class="space-y-8">
         <!-- Dokumen Wajib -->
@@ -173,8 +131,7 @@
                     <div class="border border-gray-200 rounded-lg p-4">
                         <div class="flex items-start">
                             <div class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3 mt-1">
-                                <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
                                     </path>

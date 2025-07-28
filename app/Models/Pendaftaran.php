@@ -18,11 +18,12 @@ class Pendaftaran extends Model
         'catatan',
         'tanggal_verifikasi',
         'diverifikasi_oleh',
-        'prioritas',
+        'prioritas',  // Tambahan kolom prioritas
     ];
 
     protected $casts = [
         'tanggal_verifikasi' => 'datetime',
+        'prioritas' => 'decimal:2',  // Cast prioritas sebagai decimal
     ];
 
     public function user()

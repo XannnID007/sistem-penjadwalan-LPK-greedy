@@ -2,11 +2,12 @@
 // app/Services/GreedySchedulingService.php
 namespace App\Services;
 
-use App\Models\Pendaftaran;
-use App\Models\JadwalKeberangkatan;
-use App\Models\PesertaJadwal;
 use Carbon\Carbon;
+use App\Models\Pendaftaran;
+use App\Models\PesertaJadwal;
 use Illuminate\Support\Facades\DB;
+use App\Models\JadwalKeberangkatan;
+use Illuminate\Support\Facades\Log;
 
 class GreedySchedulingService
 {
@@ -20,78 +21,116 @@ class GreedySchedulingService
       */
      public function scheduleParticipants()
      {
-          // Ambil semua peserta yang terverifikasi tapi belum dijadwalkan
-          $pesertaTerverifikasi = Pendaftaran::with('user', 'dokumen')
-               ->where('status', 'terverifikasi')
-               ->get();
+          try {
+               DB::beginTransaction();
 
-          // Hitung prioritas untuk setiap peserta
-          $pesertaDenganPrioritas = $pesertaTerverifikasi->map(function ($pendaftaran) {
-               $prioritas = $this->hitungPrioritas($pendaftaran);
-               // Menggunakan setAttribute untuk menambah property dinamis
-               $pendaftaran->setAttribute('prioritas_calculated', $prioritas);
-               return $pendaftaran;
-          });
+               // Ambil semua peserta yang terverifikasi tapi belum dijadwalkan
+               $pesertaTerverifikasi = Pendaftaran::with('user', 'dokumen')
+                    ->where('status', 'terverifikasi')
+                    ->get();
 
-          // Urutkan berdasarkan prioritas (descending - prioritas tinggi duluan)
-          $pesertaTerurut = $pesertaDenganPrioritas->sortByDesc('prioritas_calculated');
+               if ($pesertaTerverifikasi->isEmpty()) {
+                    DB::rollBack();
+                    return [
+                         'terjadwalkan' => 0,
+                         'gagal' => 0,
+                         'detail' => [],
+                         'message' => 'Tidak ada peserta yang terverifikasi untuk dijadwalkan.'
+                    ];
+               }
 
-          // Ambil jadwal yang tersedia (masih bisa diisi)
-          $jadwalTersedia = JadwalKeberangkatan::where('status', 'aktif')
-               ->whereRaw('terisi < kapasitas')
-               ->orderBy('tanggal_keberangkatan')
-               ->get();
+               // Hitung prioritas untuk setiap peserta dan simpan dalam array
+               $pesertaDenganPrioritas = [];
+               foreach ($pesertaTerverifikasi as $pendaftaran) {
+                    $prioritas = $this->hitungPrioritas($pendaftaran);
+                    $pesertaDenganPrioritas[] = [
+                         'pendaftaran' => $pendaftaran,
+                         'prioritas' => $prioritas
+                    ];
+               }
 
-          $hasil = [
-               'terjadwalkan' => 0,
-               'gagal' => 0,
-               'detail' => []
-          ];
+               // Urutkan berdasarkan prioritas (descending - prioritas tinggi duluan)
+               usort($pesertaDenganPrioritas, function ($a, $b) {
+                    return $b['prioritas'] <=> $a['prioritas'];
+               });
 
-          foreach ($pesertaTerurut as $pendaftaran) {
-               $berhasilDijadwalkan = false;
+               // Ambil jadwal yang tersedia (masih bisa diisi)
+               $jadwalTersedia = JadwalKeberangkatan::where('status', 'aktif')
+                    ->whereRaw('terisi < kapasitas')
+                    ->orderBy('tanggal_keberangkatan')
+                    ->get();
 
-               foreach ($jadwalTersedia as $jadwal) {
-                    if ($jadwal->sisaKapasitas() > 0) {
-                         // Jadwalkan peserta ke batch ini
-                         PesertaJadwal::create([
-                              'pendaftaran_id' => $pendaftaran->id,
-                              'jadwal_id' => $jadwal->id,
-                              'tanggal_dijadwalkan' => now(),
-                              'dijadwalkan_oleh' => auth()->id()
-                         ]);
+               if ($jadwalTersedia->isEmpty()) {
+                    DB::rollBack();
+                    return [
+                         'terjadwalkan' => 0,
+                         'gagal' => $pesertaTerverifikasi->count(),
+                         'detail' => [],
+                         'message' => 'Tidak ada jadwal yang tersedia untuk penjadwalan.'
+                    ];
+               }
 
-                         // Update status pendaftaran
-                         $pendaftaran->update(['status' => 'terjadwal']);
+               $hasil = [
+                    'terjadwalkan' => 0,
+                    'gagal' => 0,
+                    'detail' => []
+               ];
 
-                         // Update jumlah terisi di jadwal
-                         $jadwal->increment('terisi');
+               foreach ($pesertaDenganPrioritas as $item) {
+                    $pendaftaran = $item['pendaftaran'];
+                    $prioritas = $item['prioritas'];
+                    $berhasilDijadwalkan = false;
 
-                         // Update status jadwal jika penuh
-                         if ($jadwal->terisi >= $jadwal->kapasitas) {
-                              $jadwal->update(['status' => 'penuh']);
+                    foreach ($jadwalTersedia as $jadwal) {
+                         if ($jadwal->sisaKapasitas() > 0) {
+                              // Jadwalkan peserta ke batch ini
+                              PesertaJadwal::create([
+                                   'pendaftaran_id' => $pendaftaran->id,
+                                   'jadwal_id' => $jadwal->id,
+                                   'tanggal_dijadwalkan' => now(),
+                                   'dijadwalkan_oleh' => auth()->id()
+                              ]);
+
+                              // Update status pendaftaran
+                              $pendaftaran->update([
+                                   'status' => 'terjadwal',
+                                   'prioritas' => $prioritas
+                              ]);
+
+                              // Update jumlah terisi di jadwal
+                              $jadwal->increment('terisi');
+
+                              // Update status jadwal jika penuh
+                              if ($jadwal->terisi >= $jadwal->kapasitas) {
+                                   $jadwal->update(['status' => 'penuh']);
+                              }
+
+                              $hasil['terjadwalkan']++;
+                              $hasil['detail'][] = [
+                                   'peserta' => $pendaftaran->user->nama,
+                                   'nomor_pendaftaran' => $pendaftaran->nomor_pendaftaran,
+                                   'jadwal' => $jadwal->nama_batch,
+                                   'tanggal_keberangkatan' => $jadwal->tanggal_keberangkatan,
+                                   'prioritas' => $prioritas
+                              ];
+
+                              $berhasilDijadwalkan = true;
+                              break;
                          }
+                    }
 
-                         $hasil['terjadwalkan']++;
-                         $hasil['detail'][] = [
-                              'peserta' => $pendaftaran->user->nama,
-                              'nomor_pendaftaran' => $pendaftaran->nomor_pendaftaran,
-                              'jadwal' => $jadwal->nama_batch,
-                              'tanggal_keberangkatan' => $jadwal->tanggal_keberangkatan,
-                              'prioritas' => $pendaftaran->prioritas_calculated
-                         ];
-
-                         $berhasilDijadwalkan = true;
-                         break;
+                    if (!$berhasilDijadwalkan) {
+                         $hasil['gagal']++;
                     }
                }
 
-               if (!$berhasilDijadwalkan) {
-                    $hasil['gagal']++;
-               }
+               DB::commit();
+               return $hasil;
+          } catch (\Exception $e) {
+               DB::rollBack();
+               Log::error('Error in scheduleParticipants: ' . $e->getMessage());
+               throw $e;
           }
-
-          return $hasil;
      }
 
      /**
@@ -152,21 +191,52 @@ class GreedySchedulingService
                ->where('status', 'terverifikasi')
                ->get();
 
-          $pesertaDenganPrioritas = $pesertaTerverifikasi->map(function ($pendaftaran) {
-               $prioritas = $this->hitungPrioritas($pendaftaran);
-               // Menggunakan setAttribute untuk menambah property dinamis
-               $pendaftaran->setAttribute('prioritas_calculated', $prioritas);
-               return $pendaftaran;
-          });
+          if ($pesertaTerverifikasi->isEmpty()) {
+               return [
+                    'jadwal' => [],
+                    'tidak_terjadwal' => [],
+                    'message' => 'Tidak ada peserta yang terverifikasi untuk dijadwalkan.'
+               ];
+          }
 
-          $pesertaTerurut = $pesertaDenganPrioritas->sortByDesc('prioritas_calculated');
+          // Hitung prioritas untuk setiap peserta dan simpan dalam array
+          $pesertaDenganPrioritas = [];
+          foreach ($pesertaTerverifikasi as $pendaftaran) {
+               $prioritas = $this->hitungPrioritas($pendaftaran);
+               $pesertaDenganPrioritas[] = [
+                    'pendaftaran' => $pendaftaran,
+                    'prioritas' => $prioritas
+               ];
+          }
+
+          // Urutkan berdasarkan prioritas (descending - prioritas tinggi duluan)
+          usort($pesertaDenganPrioritas, function ($a, $b) {
+               return $b['prioritas'] <=> $a['prioritas'];
+          });
 
           $jadwalTersedia = JadwalKeberangkatan::where('status', 'aktif')
                ->whereRaw('terisi < kapasitas')
                ->orderBy('tanggal_keberangkatan')
                ->get();
 
-          $simulasi = [];
+          if ($jadwalTersedia->isEmpty()) {
+               return [
+                    'jadwal' => [],
+                    'tidak_terjadwal' => array_map(function ($item) {
+                         return [
+                              'nama' => $item['pendaftaran']->user->nama,
+                              'nomor_pendaftaran' => $item['pendaftaran']->nomor_pendaftaran,
+                              'prioritas' => $item['prioritas']
+                         ];
+                    }, $pesertaDenganPrioritas),
+                    'message' => 'Tidak ada jadwal yang tersedia.'
+               ];
+          }
+
+          $simulasi = [
+               'tidak_terjadwal' => []
+          ];
+
           $jadwalSementara = $jadwalTersedia->map(function ($jadwal) {
                return [
                     'id' => $jadwal->id,
@@ -179,7 +249,9 @@ class GreedySchedulingService
                ];
           })->toArray();
 
-          foreach ($pesertaTerurut as $pendaftaran) {
+          foreach ($pesertaDenganPrioritas as $item) {
+               $pendaftaran = $item['pendaftaran'];
+               $prioritas = $item['prioritas'];
                $berhasilDijadwalkan = false;
 
                foreach ($jadwalSementara as $key => $jadwal) {
@@ -187,7 +259,7 @@ class GreedySchedulingService
                          $jadwalSementara[$key]['peserta_terjadwal'][] = [
                               'nama' => $pendaftaran->user->nama,
                               'nomor_pendaftaran' => $pendaftaran->nomor_pendaftaran,
-                              'prioritas' => $pendaftaran->prioritas_calculated
+                              'prioritas' => $prioritas
                          ];
                          $jadwalSementara[$key]['sisa']--;
                          $berhasilDijadwalkan = true;
@@ -199,7 +271,7 @@ class GreedySchedulingService
                     $simulasi['tidak_terjadwal'][] = [
                          'nama' => $pendaftaran->user->nama,
                          'nomor_pendaftaran' => $pendaftaran->nomor_pendaftaran,
-                         'prioritas' => $pendaftaran->prioritas_calculated
+                         'prioritas' => $prioritas
                     ];
                }
           }
@@ -218,10 +290,12 @@ class GreedySchedulingService
                ->where('status', 'terverifikasi')
                ->get();
 
-          $statistik = $pesertaTerverifikasi->map(function ($pendaftaran) {
+          $statistik = collect();
+
+          foreach ($pesertaTerverifikasi as $pendaftaran) {
                $prioritas = $this->hitungPrioritas($pendaftaran);
 
-               return [
+               $statistik->push([
                     'nama' => $pendaftaran->user->nama,
                     'nomor_pendaftaran' => $pendaftaran->nomor_pendaftaran,
                     'usia' => $pendaftaran->user->tanggal_lahir ? $pendaftaran->user->tanggal_lahir->age : null,
@@ -230,9 +304,9 @@ class GreedySchedulingService
                     'total_dokumen' => $pendaftaran->dokumen->count(),
                     'hari_sejak_daftar' => $pendaftaran->created_at->diffInDays(now()),
                     'prioritas_total' => $prioritas
-               ];
-          })->sortByDesc('prioritas_total');
+               ]);
+          }
 
-          return $statistik;
+          return $statistik->sortByDesc('prioritas_total');
      }
 }
