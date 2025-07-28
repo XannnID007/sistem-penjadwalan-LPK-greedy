@@ -10,8 +10,12 @@
                 <p class="text-gray-600 mt-1">{{ $pendaftaran->nomor_pendaftaran }}</p>
             </div>
             <a href="{{ route('admin.pendaftaran.index') }}"
-                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
-                Kembali
+                class="p-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all duration-200"
+                title="Kembali">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                    </path>
+                </svg>
             </a>
         </div>
     </div>
@@ -140,14 +144,22 @@
                                         placeholder="Catatan opsional untuk peserta..."></textarea>
                                 </div>
                                 <button type="submit"
-                                    class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 mb-2">
+                                    class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 mb-2 flex items-center justify-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7"></path>
+                                    </svg>
                                     Verifikasi Pendaftaran
                                 </button>
                             </form>
 
                             <!-- Form Tolak -->
                             <button onclick="document.getElementById('tolak-modal').style.display='block'"
-                                class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                                class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
                                 Tolak Pendaftaran
                             </button>
                         </div>
@@ -186,7 +198,7 @@
                                                     {{ $dokumen->created_at->format('d M Y H:i') }}</p>
                                             </div>
                                         </div>
-                                        <div class="flex items-center space-x-3">
+                                        <div class="flex items-center space-x-2">
                                             <span
                                                 class="px-2 py-1 text-xs font-medium rounded-full
                                             @if ($dokumen->status == 'menunggu') bg-yellow-100 text-yellow-800
@@ -195,8 +207,16 @@
                                                 {{ ucfirst($dokumen->status) }}
                                             </span>
                                             <a href="{{ asset('storage/' . $dokumen->file_path) }}" target="_blank"
-                                                class="text-blue-600 hover:text-blue-700 text-sm">
-                                                Lihat File
+                                                class="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                                                title="Lihat File">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                    </path>
+                                                </svg>
                                             </a>
                                         </div>
                                     </div>
@@ -228,8 +248,15 @@
                                                 </div>
                                                 <div>
                                                     <button type="submit"
-                                                        class="w-full px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">
-                                                        Update Status
+                                                        class="w-full px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 flex items-center justify-center">
+                                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4">
+                                                            </path>
+                                                        </svg>
+                                                        Update
                                                     </button>
                                                 </div>
                                             </form>
@@ -261,8 +288,8 @@
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-medium text-gray-900">Tolak Pendaftaran</h3>
                     <button onclick="document.getElementById('tolak-modal').style.display='none'"
-                        class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -281,10 +308,20 @@
 
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="document.getElementById('tolak-modal').style.display='none'"
-                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
                             Batal
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        <button type="submit"
+                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg>
                             Tolak Pendaftaran
                         </button>
                     </div>
